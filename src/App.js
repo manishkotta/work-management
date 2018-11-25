@@ -6,7 +6,6 @@ import { withStyles } from '@material-ui/core/styles';
 import Header from './components/Header';
 import SideBar from './components/SideBar';
 
-const drawerWidth = 240;
 const styles = theme => ({
   root: {
     flexGrow: 1,
@@ -16,7 +15,6 @@ const styles = theme => ({
 });
 
 function App(props) {
-  const { classes } = props;
   return (
     <div>
       <header>

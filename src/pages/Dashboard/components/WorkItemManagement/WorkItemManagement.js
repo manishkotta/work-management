@@ -20,6 +20,13 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
 import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, SPREADSHEET_ID } from '../../../../constants/constants';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
 
 
 const styles = theme => ({
@@ -37,6 +44,12 @@ const styles = theme => ({
     iconCell: {
         display: 'flex',
     },
+    formControl: {
+        minWidth: 120,
+    },
+    noData:{
+        textAlign:"center"
+    }
 });
 
 class WorkItemManagement extends Component {
@@ -63,6 +76,8 @@ class WorkItemManagement extends Component {
                 workStatus: "",
             },
             isAdd: true,
+            filteredWorkItemGroup: [],
+            filterWorkStatus: "All",
             spreadSheetColums: ["ID", "WorkItem", "DueDate", "No. Of Resources", "Work Status"]
         }
     }
@@ -82,8 +97,10 @@ class WorkItemManagement extends Component {
 
     static getDerivedStateFromProps(props, state) {
         let spreadSheetValues = transformWorkItemGroupToSpreadSheetFormat(state.spreadSheetColums, props.workItemGroup);
+
         return {
-            spreadSheetValues: spreadSheetValues
+            spreadSheetValues: spreadSheetValues,
+            filteredWorkItemGroup: props.workItemGroup
         }
     }
 
@@ -96,12 +113,12 @@ class WorkItemManagement extends Component {
         this.setState({ open: true, workItemTitle: 'Add Work Item', isAdd: true });
     }
 
-    handleClose(workItemObj) {
+    handleClose() {
         var workItemObj = {
             workItem: "",
             dueDate: new Date(),
             noOfResources: "",
-            workStatus:""
+            workStatus: ""
         }
         this.setState({ open: !this.state.open, selectedEditWorkItem: workItemObj });
     };
@@ -138,15 +155,45 @@ class WorkItemManagement extends Component {
         }
     }
 
+    handleWorkStatusFilterChange(e, workItemGroup) {
+        if (!e || !e.target) return;
+        this.setState({ filterWorkStatus: e.target.value })
+        if (e.target.value === "All") {
+            this.setState({ filteredWorkItemGroup: [...workItemGroup] })
+            return;
+        }
+
+        let filteredValues = workItemGroup.filter(s => s.workStatus === e.target.value);
+        this.setState({ filteredWorkItemGroup: [...filteredValues] });
+    }
+
     onSpreadSheetUpload(result) {
-        console.log(result);
     }
 
     render() {
         const { classes } = this.props;
         return (
             <div>
-                <Grid container direction="row" justify="flex-end">
+                <Grid container direction="row" justify="space-between">
+                    <Grid item xs={3}>
+                        <FormControl className={classes.formControl} fullWidth>
+                            <InputLabel htmlFor="filter-work-status">Filter by Work Status</InputLabel>
+                            <Select
+                                value={this.state.filterWorkStatus}
+                                onChange={(e) => this.handleWorkStatusFilterChange(e, this.props.workItemGroup)}
+                                inputProps={{
+                                    name: 'filter-work-status',
+                                    id: 'filter-work-status',
+                                }}
+                            >
+                                <MenuItem value={"All"}>All</MenuItem>
+                                <MenuItem value={"Active"}>Active</MenuItem>
+                                <MenuItem value={"In Progress"}>In Progress</MenuItem>
+                                <MenuItem value={"Done"}>Done</MenuItem>
+                                <MenuItem value={"Overdue"}>Overdue</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
                     <Grid item>
                         <UploadToGoogleSpreadSheet
                             apiKey={GOOGLE_API_KEY}
@@ -178,8 +225,8 @@ class WorkItemManagement extends Component {
                                         <TableCell>Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
-                                <TableBody>
-                                    {this.props.workItemGroup.map(row => {
+                                {this.state.filteredWorkItemGroup.length > 0 && <TableBody>
+                                    {this.state.filteredWorkItemGroup.map(row => {
                                         return (
                                             <TableRow key={row.id}>
                                                 <TableCell component="th" scope="row" numeric>
@@ -200,8 +247,15 @@ class WorkItemManagement extends Component {
                                             </TableRow>
                                         );
                                     })}
-                                </TableBody>
+                                </TableBody>}
+
                             </Table>
+                            {this.state.filteredWorkItemGroup.length <= 0 && <Card><CardContent>
+                                <Typography className={classes.noData}>
+                                    No records found
+                                    </Typography>
+                            </CardContent></Card>
+                            }
                         </Paper>
                     </Grid>
                 </Grid>
@@ -210,7 +264,7 @@ class WorkItemManagement extends Component {
                     workItemTitle={this.state.workItemTitle}
                     onSubmit={this.onWorkItemSave}
                     workItem={this.state.selectedEditWorkItem}
-                    isAdd ={this.state.isAdd} />
+                    isAdd={this.state.isAdd} />
                 <DeleteConfirmationDialog
                     open={this.state.deleteConfirmDialogOpen}
                     handleDeleteConfirmDialog={this.handleDeleteConfirmDialog}

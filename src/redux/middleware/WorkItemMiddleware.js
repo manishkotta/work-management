@@ -12,7 +12,6 @@ export default store => next => action => {
     switch (action.type) {
         case ADD_WORK_ITEM:
             if (!action.value) return;
-            debugger;
             let s = workItemGroup.map(function (item) { return item.id; });
             let id = Math.max(...s);
             id = !Number.isInteger(id) ? 0 : id;

@@ -129,7 +129,7 @@ class UploadToGoogleSpreadSheet extends Component {
         return (
             <div>
                 <div className={classes.wrapper}>
-                    <Button variant="contained" color={this.state.loading ? "" : "primary"} className={classes.button}
+                    <Button variant="contained" color={this.state.loading ? "default" : "primary"} className={classes.button}
                         onClick={(e) => this.handleUploadClick(e)}>
                         Upload to Google SpreadSheet
                 <CloudUploadIcon className={classes.rightIcon} />
@@ -142,7 +142,7 @@ class UploadToGoogleSpreadSheet extends Component {
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
                 >
-                    <DialogTitle id="alert-dialog-title">{this.state.title}</DialogTitle>
+                    <DialogTitle id="alert-dialog-title">{"Upload to Google SpreadSheet"}</DialogTitle>
                     <DialogContent>
                         <DialogContentText id="alert-dialog-description" className={this.state.isSuccess ? classes.show : classes.hide}>
                             Data is updated to Google spreadsheet. Please click on the link to access the sheet &nbsp;

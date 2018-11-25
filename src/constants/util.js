@@ -17,16 +17,14 @@ export function transformWorkItemGroupToSpreadSheetFormat(columns, values) {
         });
         spreadSheetGroup.splice(0, 0, columns);
     }
-    console.log(spreadSheetGroup);
     return spreadSheetGroup;
 }
 
 export function getValidDate(date) {
-    if (typeof date === Date) {
+    if (typeof date === Date)
         return { date: date, isValid: true };
-    }
-    else if (typeof date === 'string' && typeof new Date(date) === Date) {
+    else if (typeof date === 'string' && typeof new Date(date) === Date)
         return { date: date, isValid: true };
-    }
-    return { date: "", isValid: false };;
+    else
+        return { date: "", isValid: false };
 }
