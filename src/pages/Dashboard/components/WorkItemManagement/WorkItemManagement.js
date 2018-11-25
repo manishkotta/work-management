@@ -12,14 +12,15 @@ import Button from '@material-ui/core/Button';
 import UploadToGoogleSpreadSheet from '../../../../components/UploadToGoogleSpreadSheet';
 import WorkItem from '../../../../components/WorkItem';
 import AddIcon from '@material-ui/icons/Add';
-import Tooltip from '@material-ui/core/Tooltip';
 import { connect } from 'react-redux';
-import { AddWorkItem, DeleteWorkItem, RetrieveWorkItemGroup, ModifyWorkItemGroup, EditWorkItem } from '../../../../redux/actions/WorkItemAction';
-import { getDateString } from '../../../../constants/util';
+import { AddWorkItem, DeleteWorkItem, ModifyWorkItemGroup, EditWorkItem } from '../../../../redux/actions/WorkItemAction';
+import { getDateString, transformWorkItemGroupToSpreadSheetFormat } from '../../../../constants/util';
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
+import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, SPREADSHEET_ID } from '../../../../constants/constants';
+
 
 const styles = theme => ({
     root: {
@@ -42,24 +43,27 @@ class WorkItemManagement extends Component {
     constructor(props) {
         super(props);
         this.id = 0;
-        this.rows = [
-            this.createData("Start Templating", "10/11/2018", 4, "In Progress", "Edit"),
-            this.createData("Draw Code", "10/11/2018", 4, "Done", "Edit"),
-        ];
         this.handleAddItem = this.handleAddItem.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.onWorkItemSave = this.onWorkItemSave.bind(this);
         this.onWorkItemDelete = this.onWorkItemDelete.bind(this);
         this.onWorkItemEdit = this.onWorkItemEdit.bind(this);
         this.handleDeleteConfirmDialog = this.handleDeleteConfirmDialog.bind(this);
+
         this.state = {
             open: false,
             deleteConfirmDialogOpen: false,
             workItemTitle: 'Add Work Item',
             deleteConfirmDialogTitle: 'Delete Work Item',
             selectedDeleteWorkItem: {},
-            selectedEditWorkItem: {},
-            isAdd: true
+            selectedEditWorkItem: {
+                workItem: "",
+                dueDate: new Date(),
+                noOfResources: "",
+                workStatus: "",
+            },
+            isAdd: true,
+            spreadSheetColums: ["ID", "WorkItem", "DueDate", "No. Of Resources", "Work Status"]
         }
     }
 
@@ -76,27 +80,40 @@ class WorkItemManagement extends Component {
         }
     }
 
-    createData(workItem, dueDate, noOfResources, workItemStatus, action) {
+    static getDerivedStateFromProps(props, state) {
+        let spreadSheetValues = transformWorkItemGroupToSpreadSheetFormat(state.spreadSheetColums, props.workItemGroup);
+        return {
+            spreadSheetValues: spreadSheetValues
+        }
+    }
+
+    createData(workItem, dueDate, noOfResources, workStatus, action) {
         var id = this.id += 1;
-        return { id, workItem, dueDate, noOfResources, workItemStatus, action };
+        return { id, workItem, dueDate, noOfResources, workStatus, action };
     }
 
     handleAddItem(e) {
         this.setState({ open: true, workItemTitle: 'Add Work Item', isAdd: true });
     }
 
-    handleClose() {
-        this.setState({ open: !this.state.open });
+    handleClose(workItemObj) {
+        var workItemObj = {
+            workItem: "",
+            dueDate: new Date(),
+            noOfResources: "",
+            workStatus:""
+        }
+        this.setState({ open: !this.state.open, selectedEditWorkItem: workItemObj });
     };
 
     onWorkItemSave(workItem) {
         if (this.state.isAdd)
             this.props.addWorkItem(workItem);
-        else{
-            var newWorkItem = Object.assign({},this.state.selectedEditWorkItem,workItem);
-            console.log(newWorkItem,"manish");
+        else {
+            var newWorkItem = Object.assign({}, this.state.selectedEditWorkItem, workItem);
             this.props.editWorkItem(newWorkItem);
         }
+
     }
 
     onWorkItemDelete(e, row) {
@@ -121,13 +138,26 @@ class WorkItemManagement extends Component {
         }
     }
 
+    onSpreadSheetUpload(result) {
+        console.log(result);
+    }
+
     render() {
         const { classes } = this.props;
         return (
             <div>
                 <Grid container direction="row" justify="flex-end">
                     <Grid item>
-                        <UploadToGoogleSpreadSheet />
+                        <UploadToGoogleSpreadSheet
+                            apiKey={GOOGLE_API_KEY}
+                            clientId={GOOGLE_CLIENT_ID}
+                            spreadsheetId={SPREADSHEET_ID}
+                            range="Sheet1"
+                            valueInputOption="RAW"
+                            majorDimension="ROWS"
+                            values={this.state.spreadSheetValues}
+                            onUpload={this.onSpreadSheetUpload}
+                        />
                     </Grid>
                     <Grid item>
                         <Button variant="contained" color="primary" className={classes.button} onClick={(e) => this.handleAddItem(e)}>
@@ -158,7 +188,7 @@ class WorkItemManagement extends Component {
                                                 <TableCell>{row.workItem}</TableCell>
                                                 <TableCell>{getDateString(row.dueDate)}</TableCell>
                                                 <TableCell numeric>{row.noOfResources}</TableCell>
-                                                <TableCell>{row.workItemStatus}</TableCell>
+                                                <TableCell>{row.workStatus}</TableCell>
                                                 <TableCell className={classes.iconCell}>
                                                     <IconButton onClick={(e) => this.onWorkItemEdit(e, row)}>
                                                         <EditIcon color="primary" />
@@ -179,7 +209,8 @@ class WorkItemManagement extends Component {
                     handleClose={this.handleClose}
                     workItemTitle={this.state.workItemTitle}
                     onSubmit={this.onWorkItemSave}
-                    workItem={this.state.selectedEditWorkItem} />
+                    workItem={this.state.selectedEditWorkItem}
+                    isAdd ={this.state.isAdd} />
                 <DeleteConfirmationDialog
                     open={this.state.deleteConfirmDialogOpen}
                     handleDeleteConfirmDialog={this.handleDeleteConfirmDialog}

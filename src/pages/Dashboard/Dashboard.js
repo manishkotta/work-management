@@ -3,6 +3,7 @@ import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import WorkItemManagement from './components/WorkItemManagement';
+import { connect } from 'react-redux';
 
 const styles = theme => ({
     root: {
@@ -10,10 +11,6 @@ const styles = theme => ({
     }
 });
 class Dashboard extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const { classes } = this.props;
         return (
@@ -32,4 +29,11 @@ Dashboard.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Dashboard);
+const mapStateToProps = state => {
+    const {workItem : { workItemGroup }} = state;
+    return {
+        workItemGroup
+    };
+}
+
+export default connect(mapStateToProps)(withStyles(styles)(Dashboard));
