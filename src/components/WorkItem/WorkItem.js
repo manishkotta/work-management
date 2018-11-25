@@ -171,7 +171,7 @@ class WorkItem extends Component {
                         error={this.state.errors.workItem.error}
                         onChange={this.handleChange}
                         inputProps={{
-                            maxLength: 25,
+                            maxLength: 60,
                         }}
                         helperText={this.state.errors.workItem.errorText}
                         className={classes.marginBottom}

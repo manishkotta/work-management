@@ -5,6 +5,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import PieChart from '../PieChart'
 
 const drawerWidth = 240;
 const styles = theme => ({
@@ -17,10 +18,7 @@ const styles = theme => ({
     },
     toolbar: theme.mixins.toolbar,
     appBar: {
-        marginLeft: drawerWidth,
-        [theme.breakpoints.up('sm')]: {
-            width: `calc(100% - ${drawerWidth}px)`,
-        },
+        zIndex: theme.zIndex.drawer + 1,
     },
 });
 
@@ -44,6 +42,7 @@ class Header extends Component {
                     <Typography variant="h6" color="inherit" className={classes.grow}>
                         Work Management
                     </Typography>
+                    <PieChart Items={this.props.workItemGroup} />
                     <Typography variant="h6" color="inherit">
                         Number of Work Items : {this.getActiveWorkItemCount(this.props.workItemGroup)}
                     </Typography>

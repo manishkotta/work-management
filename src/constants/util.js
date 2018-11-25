@@ -17,7 +17,6 @@ export function transformWorkItemGroupToSpreadSheetFormat(columns, values) {
         });
         spreadSheetGroup.splice(0, 0, columns);
     }
-    console.log(spreadSheetGroup);
     return spreadSheetGroup;
 }
 
